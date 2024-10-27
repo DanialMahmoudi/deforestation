@@ -3,7 +3,7 @@ pipeline AirportPipeline {
     -> AirportTextFileInterpreter;
   AirportTextFileInterpreter
     -> AirportCSVInterpreter
-    //-> AirportColumnDeleter
+    -> AirportColumnDeleter
     -> AirportTableInterpreter
     -> AirportLoader;
 
@@ -14,11 +14,13 @@ pipeline AirportPipeline {
 
   block AirportTextFileInterpreter oftype TextFileInterpreter { }
 
-  block AirportCSVInterpreter oftype CSVInterpreter { }
+  block AirportCSVInterpreter oftype CSVInterpreter {
+    delimiter: ";";
+  }
 
-  //block AirportColumnDeleter oftype ColumnDeleter{
-    //delete: [];
-  //}
+  block AirportColumnDeleter oftype ColumnDeleter{
+    delete: [column J, column K, column L, column M];
+  }
 
   block AirportTableInterpreter oftype TableInterpreter {
     header: true;
@@ -31,7 +33,7 @@ pipeline AirportPipeline {
         "ICAO" oftype text,
         "Latitude" oftype decimal,
         "Longitude" oftype decimal,
-        "Altitude" oftype integer,
+        "Altitude" oftype integer
     ];
   }
 
