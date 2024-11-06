@@ -33,7 +33,7 @@ pipeline TreePipeline{
         table: "trees";
         file: "./trees.sqlite";
     }
-
+    
 
 }
 
