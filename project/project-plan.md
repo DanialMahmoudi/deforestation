@@ -50,7 +50,3 @@ OpenAQ aggregates air quality data from various sources, including Brazil, and p
 6. **Report Generation**
    - Summarize findings in a report, discussing the observed impact of deforestation on pollution.
    - Answer the main research question with insights and visualizations.
-
-7. **Presentation Preparation**
-   - Create visual aids (charts, maps) to effectively communicate findings.
-   - Prepare a presentation for the course project review.
