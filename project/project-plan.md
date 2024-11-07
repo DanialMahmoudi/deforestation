@@ -13,7 +13,7 @@ Deforestation in the Amazon is a significant environmental issue with potential 
 
 ### Datasource 1: Global Forest Watch - Amazon Deforestation
 - **Metadata URL**: [Global Forest Watch Data](https://data.globalforestwatch.org/)
-- **Data URL**: [Amazon Deforestation Data](https://data.globalforestwatch.org/datasets/prodes-deforestation-in-brazil-legal-amazon)
+- **Data URL**: [Amazon Deforestation Data]([https://data.globalforestwatch.org/datasets/prodes-deforestation-in-brazil-legal-amazon](https://data.globalforestwatch.org/datasets/gfw::sad-alerts/about))
 - **Data Type**: CSV, GeoTIFF, Shapefiles
 
 Global Forest Watch provides comprehensive datasets on deforestation, specifically in the Amazon. The PRODES dataset tracks deforestation in Brazil’s Amazon region, offering insights into forest cover loss over time.
