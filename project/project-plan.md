@@ -54,7 +54,3 @@ OpenAQ aggregates air quality data from various sources, including Brazil, and p
 7. **Presentation Preparation**
    - Create visual aids (charts, maps) to effectively communicate findings.
    - Prepare a presentation for the course project review.
-
----
-
-This structured approach should align with your course’s focus on data engineering while allowing flexibility for deeper analysis if pursued as a personal project. Let me know if you'd like any adjustments!
