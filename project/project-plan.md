@@ -7,28 +7,28 @@ Deforestation and Pollution Correlation in the Amazon
 How does deforestation in the Amazon correlate with pollution outcomes in Brazil?
 
 ## Description
-Deforestation in the Amazon is a critical environmental issue, impacting both ecosystems and human health. This project aims to analyze the relationship between deforestation and pollution levels in Brazil, specifically focusing on areas affected by Amazonian deforestation. By correlating deforestation data with pollution indicators, we aim to uncover patterns that highlight potential public health implications and environmental changes in the region.
+Deforestation in the Amazon is a critical environmental issue, impacting both ecosystems and human health. This project aims to analyze the relationship between deforestation and pollution levels in Brazil, and more specifically, São Paulo. By correlating deforestation data with pollution indicators, we aim to uncover patterns that highlight potential public health implications and environmental changes in the region.
 
 ## Datasources
 
 ### Datasource 1: Global Forest Watch - Amazon Deforestation (SAD Alerts)
 - **Metadata URL**: [Global Forest Watch SAD Alerts Data](https://data.globalforestwatch.org/datasets/gfw::sad-alerts/about)
-- **Data URL**: [SAD Alerts Dataset](https://data.globalforestwatch.org/datasets/gfw::sad-alerts/about)
+- **Data URL**: [SAD Alerts Dataset](https://hub.arcgis.com/api/v3/datasets/9c4a16f9520447349159fa30abcea08b_2/downloads/data?format=csv&spatialRefId=3857&where=1%3D1)
 - **Data Type**: Feature Layer, Custom License
 
 The SAD Alerts dataset provides deforestation alerts specific to the Brazilian Amazon, tracking forest cover loss and degradation. This dataset allows for monitoring deforestation over time, which is crucial for identifying patterns in environmental changes.
 
-### Datasource 2: OpenAQ - Air Quality Data for Brazil
-- **Metadata URL**: [OpenAQ Data](https://openaq.org/#/locations)
-- **Data URL**: [OpenAQ Air Quality Data](https://openaq.org/#/locations)
+### Datasource 2: Kaggle - Air Pollution at São Paulo, Brazil, since 2013
+- **Metadata URL**: [Kaggle Data](https://www.kaggle.com/datasets/danlessa/air-pollution-at-so-paulo-brazil-since-2013)
+- **Data URL**: [Kaggle Data](https://www.kaggle.com/api/v1/datasets/download/danlessa/air-pollution-at-so-paulo-brazil-since-2013)
 - **Data Type**: CSV
 
-OpenAQ aggregates air quality data from various sources, including Brazil, and provides pollutant measurements (e.g., PM2.5, PM10). This data is useful for assessing pollution levels in areas close to deforestation sites in the Amazon, allowing for a detailed correlation analysis.
+The "Air Pollution at São Paulo, Brazil, since 2013" dataset contains historical air quality data from CETESB monitoring stations, starting in May 2013. It includes pollution index values for various pollutants categorized by air quality levels (Good, Moderate, Bad, Horrible). The dataset also provides station addresses for potential geospatial analysis.
 
 ## Work Packages
 
 1. **Data Acquisition and Exploration**
-   - Download deforestation and pollution datasets from SAD Alerts and OpenAQ.
+   - Download deforestation and pollution datasets from SAD Alerts and Kaggle.
    - Inspect the datasets for data formats, timestamps, and key attributes for analysis.
   
 2. **Data Cleaning and Preprocessing**
