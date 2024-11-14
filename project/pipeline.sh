@@ -11,4 +11,4 @@ pip install -r ../requirements.txt
 # On Windows: C:\Users\<Your Username>\.kaggle\
 
 # Run the Python pipeline script
-python3 pipeline.py
+python pipeline.py
