@@ -4,13 +4,13 @@ pipeline FigPipeline{
     FigXLSXInterpreter
     -> FigSheetPicker
     -> FigCellRangeSelector
-    -> Fig1CellWriter
-    -> Fig2CellWriter
-    -> Fig3CellWriter
+    -> FigA1CellWriter
+    -> FigC1CellWriter
+    -> FigD1CellWriter
     -> FigTableInterpreter
     -> FigLoader;
 
-    Fig3CellWriter
+    FigD1CellWriter
     -> SecondFigTableInterpreter
     -> SecondFigLoader;
 
@@ -29,17 +29,17 @@ block FigCellRangeSelector oftype CellRangeSelector{
     select: range P2:S45;
 }
 
-block Fig1CellWriter oftype CellWriter{
+block FigA1CellWriter oftype CellWriter{
     at: cell A1;
     write: ["Country Code"];
 }
 
-block Fig2CellWriter oftype CellWriter{
+block FigC1CellWriter oftype CellWriter{
     at: cell C1;
     write: ["GDP per Capita"];
 }
 
-block Fig3CellWriter oftype CellWriter{
+block FigD1CellWriter oftype CellWriter{
     at: cell D1;
     write: ["Bond Issuance Share"];
 }
