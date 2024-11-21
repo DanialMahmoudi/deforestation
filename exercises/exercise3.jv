@@ -1,0 +1,76 @@
+pipeline FigPipeline{
+    FigExtractor
+    -> FigXLSXInterpreter;
+    FigXLSXInterpreter
+    -> FigSheetPicker
+    -> FigCellRangeSelector
+    -> FigHeadCellWriter
+    -> FigTableInterpreter
+    -> FigLoader;
+
+    FigHeadCellWriter
+    -> SecondFigTableInterpreter
+    -> SecondFigLoader;
+
+
+block FigExtractor oftype HttpExtractor{
+        url: "https://thedocs.worldbank.org/en/doc/7d852628d96b9411d43e5d36d5dff941-0050062022/original/Graphs-Chapter-5-02082022.xlsx";
+    }
+
+block FigXLSXInterpreter oftype XLSXInterpreter{ }
+
+block FigSheetPicker oftype SheetPicker{
+    sheetName: "Figure S5.1.2";
+}
+
+block FigCellRangeSelector oftype CellRangeSelector{
+    select: range P2:S45;
+}
+
+block FigHeadCellWriter oftype CellWriter{
+    at: range A1:*1;
+    write: ["Country Code", "Economy", "GDP per Capita", "Bond Issuance Share"];
+}
+
+
+block FigTableInterpreter oftype TableInterpreter{
+    header: true;
+    columns: [
+        "Country Code" oftype CountryCodeAlpha3,
+        "Bond Issuance Share" oftype BIS
+    ];
+}
+
+block FigLoader oftype SQLiteLoader{
+    table: "bondIssuance";
+    file: "./country-stats.sqlite";
+}
+
+block SecondFigTableInterpreter oftype TableInterpreter{
+    header: true;
+    columns: [
+        "Country Code" oftype CountryCodeAlpha3,
+        "GDP per Capita" oftype GDP
+    ];
+}
+
+block SecondFigLoader oftype SQLiteLoader{
+    table: "gdpPerCapita";
+    file: "./country-stats.sqlite";
+}
+
+}
+
+valuetype GDP oftype decimal{
+    constraints: [GDPConstraint];
+}
+
+constraint GDPConstraint on decimal:
+    value >= 0;
+
+valuetype BIS oftype decimal{
+    constraints: [BISConstraint];
+}
+
+constraint BISConstraint on decimal:
+    value >= 0 and value <= 1;
