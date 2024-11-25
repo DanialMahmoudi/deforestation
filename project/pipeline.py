@@ -89,34 +89,64 @@ def download_pollution_data():
 
 # Apply transformations to deforestation dataset
 def clean_deforestation_data(df):
+    
+    # Focus only on major deforestation events
+    df = df[df['data_type'] == 'defor']
+    
+    # Only keep date, ha_eck_iv, and shape_Area
     df = df.rename(columns={
-        'objectid': 'ID', 
-        'date': 'Date', 
-        'data_type': 'DataType', 
-        'orig_oid': 'OrigOID',
-        'orig_fname': 'OrigFname', 
-        'gfwid': 'GFWID', 
-        'globalid': 'GlobalID', 
-        'ha_eck_iv': 'HaEckIV', 
-        'date_alias': 'DateAlias', 
-        'shape_Length': 'ShapeLength', 
-        'shape_Area': 'ShapeArea'
+        'date': 'Date',
+        'ha_eck_iv': 'AffectedArea'
     })
+    df = df[['Date', 'AffectedArea']]
+    
+    # Standardize the time format
     df['Date'] = pd.to_datetime(df['Date'], format='%Y/%m/%d %H:%M:%S%z', errors='coerce')
-    df['Date'] = df['Date'].dt.tz_localize(None)
+    df['Date'] = df['Date'].dt.tz_localize(None) # Remove timezone information
+    
+    # Sort ascendingly by time
     df = df.sort_values(by='Date', ascending=True)
-    df = df.dropna(subset=['Date', 'HaEckIV'])
+    
+    # Drop unnecessary columns
+    df = df.dropna(subset=['Date', 'AffectedArea'])
+    
+    # Aggregate by summing AffectedArea per month
+    df = df.groupby(df['Date'].dt.to_period('M')).agg({'AffectedArea': 'sum'}).reset_index()
+    df['Date'] = df['Date'].dt.to_timestamp()  # Convert period back to timestamp
+    
+    # Filter for the overlapping period
+    df = df[(df['Date'] >= '2013-05-01') & (df['Date'] <= '2018-12-31')]
+    
     return df
 
 
 # Apply transformations to pollution dataset
 def clean_pollution_data(df):
-    df = df.rename(columns={df.columns[0]: 'No.', 'time': 'Time', 'id': 'ID'})
-    df['Time'] = pd.to_datetime(df['Time'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    # Change column names and align pollutant names with standard names
+    df = df.rename(columns={df.columns[0]: 'No.', 'time': 'Date', 'id': 'ID', 'MP10': 'PM10', 'MP2.5': 'PM2.5', 'BENZENO': 'Benzene', 'TOLUENO': 'Toluene'})
     
-    pollutant_columns = ['MP10', 'TRS', 'O3', 'NO2', 'CO', 'MP2.5', 'SO2', 'BENZENO', 'TOLUENO']
+    # Keep relevant columns only and standardize the time format
+    df = df[['Date', 'PM10', 'TRS', 'O3', 'NO2', 'CO', 'PM2.5', 'SO2', 'Benzene', 'Toluene']]
+    df['Date'] = pd.to_datetime(df['Date'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    
+    # Drop rows with all empty pollutants data
+    pollutant_columns = ['PM10', 'TRS', 'O3', 'NO2', 'CO', 'PM2.5', 'SO2', 'Benzene', 'Toluene']
     df = df.dropna(subset=pollutant_columns, how='all')
-    #df[pollutant_columns] = df[pollutant_columns].apply(pd.to_numeric, errors='coerce')
+    
+    # Ensure pollutant columns are numeric
+    df[pollutant_columns] = df[pollutant_columns].apply(pd.to_numeric, errors='coerce')
+    
+    # Get an average by averaging per day
+    df = df.groupby(df['Date'].dt.to_period('D')).mean(numeric_only=True).reset_index()
+    df['Date'] = df['Date'].dt.to_timestamp() # Convert period back to timestamp
+    
+    # Get an average by averaging per month to align with deforestation dataset
+    df = df.groupby(df['Date'].dt.to_period('M')).mean(numeric_only=True).reset_index()
+    df['Date'] = df['Date'].dt.to_timestamp() # Convert period back to timestamp
+    
+    # Filter for the overlapping period
+    df = df[(df['Date'] >= '2013-05-01') & (df['Date'] <= '2018-12-31')]
+    
     return df
 
 
