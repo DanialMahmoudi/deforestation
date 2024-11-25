@@ -4,6 +4,9 @@ import requests
 import subprocess
 import pandas as pd
 import sys
+import time
+from functools import wraps
+
 
 # Detect virtual environment path dynamically
 venv_path = os.path.join(sys.prefix, 'Scripts', 'kaggle.exe') if os.name == 'nt' else os.path.join(sys.prefix, 'bin', 'kaggle')
@@ -15,6 +18,22 @@ if not os.path.exists(data_dir):
     os.makedirs(data_dir)
 
 deforestation_url = "https://hub.arcgis.com/api/v3/datasets/9c4a16f9520447349159fa30abcea08b_2/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
+
+# Retry decorator
+def retry_on_failure(retries=100, delay=5):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(1, retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    print(f"Error: {e}. Retrying in {delay} seconds... (Attempt {attempt}/{retries})")
+                    time.sleep(delay)
+            raise Exception(f"Failed after {retries} attempts.")
+        return wrapper
+    return decorator
+            
 
 # Remove existing datasets before re-downloading
 def clear_existing_datasets():
@@ -28,18 +47,19 @@ def clear_existing_datasets():
         os.remove(pollution_path)
         print("Removed existing pollution dataset.")
 
+
 # Download function for deforestation data
+@retry_on_failure(retries=100, delay=5)
 def download_data(url, file_path):
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        with open(file_path, 'wb') as f:
-            f.write(response.content)
-        print(f"Downloaded {file_path}")
-    except requests.exceptions.RequestException as e:
-        print(f"Error downloading {url}: {e}")
+    response = requests.get(url)
+    response.raise_for_status()
+    with open(file_path, 'wb') as f:
+        f.write(response.content)
+    print(f"Downloaded {file_path}")
+    
 
 # Download pollution data using Kaggle API with subprocess
+@retry_on_failure(retries=100, delay=5)
 def download_pollution_data():
     try:
         # Kaggle CLI download command
@@ -65,6 +85,7 @@ def download_pollution_data():
     except subprocess.CalledProcessError as e:
         print(f"Error downloading pollution data: {e}")
         return None
+    
 
 # Apply transformations to deforestation dataset
 def clean_deforestation_data(df):
@@ -87,6 +108,7 @@ def clean_deforestation_data(df):
     df = df.dropna(subset=['Date', 'HaEckIV'])
     return df
 
+
 # Apply transformations to pollution dataset
 def clean_pollution_data(df):
     df = df.rename(columns={df.columns[0]: 'No.', 'time': 'Time', 'id': 'ID'})
@@ -96,6 +118,7 @@ def clean_pollution_data(df):
     df = df.dropna(subset=pollutant_columns, how='all')
     #df[pollutant_columns] = df[pollutant_columns].apply(pd.to_numeric, errors='coerce')
     return df
+
 
 # Clear existing datasets, then download fresh ones
 clear_existing_datasets()
