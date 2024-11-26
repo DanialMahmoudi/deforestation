@@ -6,6 +6,10 @@ import pandas as pd
 import sys
 import time
 from functools import wraps
+import matplotlib
+matplotlib.use('Qt5Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 # Detect virtual environment path dynamically
@@ -117,11 +121,29 @@ def clean_deforestation_data(df):
     # Filter for the overlapping period
     df = df[(df['Date'] >= '2013-05-01') & (df['Date'] <= '2018-12-31')]
     
+    # Setting the date as the index
+    df.set_index('Date', inplace=True)
+    
+    # Reindex to fill missing months
+    all_dates = pd.date_range(start=df.index.min(), end=df.index.max(), freq='MS')  # Monthly start frequency
+    df = df.reindex(all_dates)
+    
+    # Interpolate missing values linearly
+    df['AffectedArea'] = df['AffectedArea'].interpolate(method='linear')
+    
+    # Resetting index if needed
+    df.reset_index(inplace=True)
+    df.rename(columns={'index': 'Date'}, inplace=True)
+    
+    # Round values up to 2 decimal points
+    df['AffectedArea'] = df['AffectedArea'].round(2)
+    
     return df
 
 
 # Apply transformations to pollution dataset
 def clean_pollution_data(df):
+    
     # Change column names and align pollutant names with standard names
     df = df.rename(columns={df.columns[0]: 'No.', 'time': 'Date', 'id': 'ID', 'MP10': 'PM10', 'MP2.5': 'PM2.5', 'BENZENO': 'Benzene', 'TOLUENO': 'Toluene'})
     
@@ -147,7 +169,70 @@ def clean_pollution_data(df):
     # Filter for the overlapping period
     df = df[(df['Date'] >= '2013-05-01') & (df['Date'] <= '2018-12-31')]
     
+    # Fill missing values in TRS, Benzene, and Toluene with 0
+    columns_to_fill = ['TRS', 'Benzene', 'Toluene']
+    df[columns_to_fill] = df[columns_to_fill].fillna(0)
+    
+    # Round values up to 2 decimal points
+    numeric_columns = ['PM10', 'TRS', 'O3', 'NO2', 'CO', 'PM2.5', 'SO2', 'Benzene', 'Toluene']
+    df[numeric_columns] = df[numeric_columns].round(2)
+
     return df
+
+# Deforestation Trend Plot
+def plot_deforestation_trend(deforestation_df):
+    
+    # Plot deforestation over time
+    plt.figure(figsize=(12, 6))
+    sns.lineplot(data=deforestation_df, x="Date", y="AffectedArea", label="Deforestation Area")
+    plt.title("Deforestation Trend Over Time")
+    plt.xlabel("Date")
+    plt.ylabel("Affected Area (ha)")
+    plt.tight_layout()
+    plt.show()
+    
+# Trend Plot for all pollutants
+def plot_pollutant_trends(pollution_df):
+    
+    # Plot each pollutant average based on time
+    plt.figure(figsize=(15, 10))
+    for col in pollution_df.columns.difference(['Date']):
+        sns.lineplot(data=pollution_df, x="Date", y=col, label=col)
+        
+    plt.title("Trends of All Pollutants Over Time")
+    plt.xlabel("Date")
+    plt.ylabel("Pollutant Levels")
+    plt.legend(title="Pollutants", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+    plt.show()
+    
+# Correlation Heatmap
+def plot_correlation_heatmap(deforestation_df, pollution_df):
+    
+    # Merge datasets
+    merged_df = pd.merge(deforestation_df, pollution_df, on="Date", how="inner")
+    
+    #Plot correlation
+    correlation_matrix = merged_df.drop(columns=['Date']).corr()
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap="coolwarm", cbar=True)
+    plt.title("Correlation Between Deforestation and All Pollutants")
+    plt.tight_layout()
+    plt.show()
+    
+# Scatter plot for deforestation vs each pollutant
+def plot_deforestation_vs_pollutant(deforestation_df, pollution_df, pollutants):
+    
+    # Merge datasets
+    merged_df = pd.merge(deforestation_df, pollution_df, on="Date", how="inner")
+    
+    for pollutant in pollutants:
+        plt.figure(figsize=(8, 6))
+        sns.scatterplot(data=merged_df, x=pollutant, y="AffectedArea")
+        plt.title(f"Deforestation Area vs {pollutant}")
+        plt.xlabel(f"{pollutant} Levels")
+        plt.ylabel("Deforestation Area (ha)")
+        plt.show()
 
 
 # Clear existing datasets, then download fresh ones
@@ -167,6 +252,13 @@ if os.path.exists(deforestation_path) and pollution_data_path:
     # Apply transformations
     deforestation_df = clean_deforestation_data(deforestation_df)
     pollution_df = clean_pollution_data(pollution_df)
+    
+    # Calling visualization functions
+    plot_deforestation_trend(deforestation_df)
+    plot_pollutant_trends(pollution_df)
+    plot_correlation_heatmap(deforestation_df, pollution_df)
+    pollutants = pollution_df.columns.difference(['Date'])
+    plot_deforestation_vs_pollutant(deforestation_df, pollution_df, pollutants)
     
     # Save to deforestation.db
     deforestation_db_path = os.path.join(data_dir, "deforestation.db")
