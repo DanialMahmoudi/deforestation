@@ -111,7 +111,7 @@ def clean_deforestation_data(df):
     # Sort ascendingly by time
     df = df.sort_values(by='Date', ascending=True)
     
-    # Drop unnecessary columns
+    # Drop rows with missing values
     df = df.dropna(subset=['Date', 'AffectedArea'])
     
     # Aggregate by summing AffectedArea per month
