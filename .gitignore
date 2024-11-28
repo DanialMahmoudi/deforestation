@@ -2,4 +2,4 @@
 /data/*
 !/data/.gitkeep
 .venv/
-/project/data_report.ipynb
+/project/data-report.ipynb
