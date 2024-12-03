@@ -1,0 +1,115 @@
+pipeline BatTemp {
+    BatTempExtractor
+    -> ZIPArchiveInterpreter;
+
+    ZIPArchiveInterpreter
+    -> DataFilePicker
+    -> BatTempTextFileInterpreter
+    -> BatTempCSVInterpreter
+    -> CellA1Writer
+    -> CellB1Writer
+    -> CellC1Writer
+    -> CellD1Writer
+    -> CellE1Writer
+    -> CellJ1Writer
+    -> BatTempTableInterpreter
+    -> CelsiusToFahrenheitTransformer1;
+
+    CelsiusToFahrenheitTransformer1
+    -> CelsiusToFahrenheitTransformer2;
+
+    CelsiusToFahrenheitTransformer2
+    -> BatTempLoader;
+
+
+    block BatTempExtractor oftype HttpExtractor{
+        url: "https://www.mowesta.com/data/measure/mowesta-dataset-20221107.zip";
+    }
+
+    block ZIPArchiveInterpreter oftype ArchiveInterpreter{
+        archiveType: "zip";
+    }
+
+    block DataFilePicker oftype FilePicker{
+        path: "/data.csv";
+    }
+
+    block BatTempTextFileInterpreter oftype TextFileInterpreter{ }
+
+    block BatTempCSVInterpreter oftype CSVInterpreter {
+        delimiter: ";";
+    }
+
+    block CellA1Writer oftype CellWriter{
+        at: cell A1;
+        write: ["id"];
+    }
+
+    block CellB1Writer oftype CellWriter{
+        at: cell B1;
+        write: ["producer"];
+    }
+
+    block CellC1Writer oftype CellWriter{
+        at: cell C1;
+        write: ["model"];
+    }
+
+    block CellD1Writer oftype CellWriter{
+        at: cell D1;
+        write: ["month"];
+    }
+
+    block CellE1Writer oftype CellWriter{
+        at: cell E1;
+        write: ["temperature"];
+    }
+
+    block CellJ1Writer oftype CellWriter{
+        at: cell J1;
+        write: ["battery_temperature"];
+    }
+
+    block BatTempTableInterpreter oftype TableInterpreter{
+        header: true;
+        columns: [
+            "id" oftype integer,
+            "producer" oftype text,
+            "model" oftype text,
+            "month" oftype integer,
+            "temperature" oftype decimal,
+            "battery_temperature" oftype decimal
+        ];
+    }
+
+    block CelsiusToFahrenheitTransformer1 oftype TableTransformer {
+   inputColumns: ["temperature"];
+   outputColumn: "temperature";
+   uses: CelsiusToFahrenheit;
+   }
+
+   block CelsiusToFahrenheitTransformer2 oftype TableTransformer {
+   inputColumns: ["battery_temperature"];
+   outputColumn: "battery_temperature";
+   uses: CelsiusToFahrenheit;
+   }
+
+    transform CelsiusToFahrenheit {
+        from Celsius oftype decimal;
+        to Fahrenheit oftype decimal;
+
+        Fahrenheit: (Celsius * 9/5) + 32;
+    }
+
+    block BatTempLoader oftype SQLiteLoader{
+        table: "temperatures";
+        file: "./temperatures.sqlite";
+    }
+}
+
+valuetype ID oftype integer{
+    constraints: [IDConstraint];
+}
+
+constraint IDConstraint on integer:
+    value > 0;
