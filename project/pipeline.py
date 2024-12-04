@@ -254,11 +254,11 @@ if os.path.exists(deforestation_path) and pollution_data_path:
     pollution_df = clean_pollution_data(pollution_df)
     
     # Calling visualization functions
-    plot_deforestation_trend(deforestation_df)
-    plot_pollutant_trends(pollution_df)
-    plot_correlation_heatmap(deforestation_df, pollution_df)
-    pollutants = pollution_df.columns.difference(['Date'])
-    plot_deforestation_vs_pollutant(deforestation_df, pollution_df, pollutants)
+    #plot_deforestation_trend(deforestation_df)
+    #plot_pollutant_trends(pollution_df)
+    #plot_correlation_heatmap(deforestation_df, pollution_df)
+    #pollutants = pollution_df.columns.difference(['Date'])
+    #plot_deforestation_vs_pollutant(deforestation_df, pollution_df, pollutants)
     
     # Save to deforestation.db
     deforestation_db_path = os.path.join(data_dir, "deforestation.db")
