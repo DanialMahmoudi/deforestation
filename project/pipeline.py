@@ -78,16 +78,17 @@ def download_pollution_data():
         # Run the Kaggle download command
         subprocess.run(kaggle_command, check=True)
         
-        # Find the extracted CSV file within the data directory
+        # Debug: List all files in the data directory
         for root, dirs, files in os.walk(data_dir):
-            for file in files:
-                if file.endswith(".csv"):
-                    pollution_file = os.path.join(root, file)
-                    print(f"Pollution dataset downloaded and extracted to: {pollution_file}")
-                    return pollution_file
-
-        print("Pollution data extraction failed.")
-        return None
+            print(f"Found files in {root}: {files}")
+        
+        # Explicitly target cetesb.csv
+        cetesb_file_path = os.path.join(data_dir, "cetesb.csv", "cetesb.csv")
+        if os.path.exists(cetesb_file_path):
+            print(f"Using pollution dataset: {cetesb_file_path}")
+            return cetesb_file_path
+        else:
+            raise FileNotFoundError(f"'cetesb.csv' not found in {data_dir}")
     except subprocess.CalledProcessError as e:
         print(f"Error downloading pollution data: {e}")
         return None
