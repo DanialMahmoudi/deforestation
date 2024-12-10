@@ -302,19 +302,11 @@ else:
 if os.path.exists(deforestation_path) and pollution_data_path:
     # Load datasets
     deforestation_df = pd.read_csv(deforestation_path)
-    print("Deforestation_raw")
-    print(deforestation_df)
     pollution_df = pd.read_csv(pollution_data_path)
-    print("Pollution_raw")
-    print(pollution_df)
     
     # Apply transformations
     deforestation_df = clean_deforestation_data(deforestation_df)
-    print("Deforestation_transformed")
-    print(deforestation_df)
     pollution_df = clean_pollution_data(pollution_df)
-    print("Pollution_transformed")
-    print(pollution_df)
     
     # Calling visualization functions
     #plot_deforestation_trend(deforestation_df)
