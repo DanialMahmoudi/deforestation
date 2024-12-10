@@ -13,7 +13,7 @@ import seaborn as sns
 
 
 # To see whether CI works or not
-
+#
 # Detect virtual environment path dynamically
 venv_path = os.path.join(sys.prefix, 'Scripts', 'kaggle.exe') if os.name == 'nt' else os.path.join(sys.prefix, 'bin', 'kaggle')
 
