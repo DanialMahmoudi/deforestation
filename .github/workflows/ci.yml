@@ -29,7 +29,6 @@ jobs:
     - name: Debug Kaggle Secret
       run: echo "${{ secrets.KAGGLE_CONFIG_DIR }}" | head -n 1
 
-
     # Install Kaggle CLI and Dependencies
     - name: Install Kaggle CLI and Dependencies
       run: |
@@ -44,9 +43,21 @@ jobs:
         chmod +x project/pipeline.sh
         chmod +x project/tests.sh
 
+    # Debug data folder before pipeline
+    - name: Debug Data Folder
+      run: ls -R ./data || echo "Data folder is empty or missing"
+
+    # Clear old data before running pipeline
+    - name: Clear Old Data
+      run: rm -rf ./data || echo "No data folder to clear"
+
     # Run pipeline.sh
     - name: Run Pipeline Script
       run: bash project/pipeline.sh
+
+    # Debug data folder after pipeline
+    - name: Debug Data Folder After Pipeline
+      run: ls -R ./data || echo "Data folder is empty after pipeline"
 
     # Run tests.sh
     - name: Run Tests
@@ -56,5 +67,9 @@ jobs:
     - name: Save Logs for Debugging
       if: failure()
       run: |
+        echo "Pipeline Script Logs:"
         cat project/pipeline.sh
+        echo "Test Script Logs:"
         cat project/tests.sh
+        echo "Contents of Data Folder:"
+        ls -R ./data || echo "Data folder missing"
