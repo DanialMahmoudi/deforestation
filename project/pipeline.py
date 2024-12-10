@@ -78,10 +78,6 @@ def download_pollution_data():
         # Run the Kaggle download command
         subprocess.run(kaggle_command, check=True)
         
-        # Debug: List all files in the data directory
-        for root, dirs, files in os.walk(data_dir):
-            print(f"Found files in {root}: {files}")
-        
         # Explicitly target cetesb.csv
         cetesb_file_path = os.path.join(data_dir, "cetesb.csv", "cetesb.csv")
         if os.path.exists(cetesb_file_path):
@@ -147,10 +143,8 @@ def clean_deforestation_data(df):
 # Apply transformations to pollution dataset
 def clean_pollution_data(df):
     
-    print("Columns before renaming:", df.columns)  # Debugging
     # Change column names and align pollutant names with standard names
     df = df.rename(columns={df.columns[0]: 'No.', 'time': 'Date', 'id': 'ID', 'MP10': 'PM10', 'MP2.5': 'PM2.5', 'BENZENO': 'Benzene', 'TOLUENO': 'Toluene'})
-    print("Columns after renaming:", df.columns)  # Debugging
     
     # Keep relevant columns only and standardize the time format
     df = df[['Date', 'PM10', 'TRS', 'O3', 'NO2', 'CO', 'PM2.5', 'SO2', 'Benzene', 'Toluene']]
