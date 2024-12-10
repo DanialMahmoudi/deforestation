@@ -146,8 +146,10 @@ def clean_deforestation_data(df):
 # Apply transformations to pollution dataset
 def clean_pollution_data(df):
     
+    print("Columns before renaming:", df.columns)  # Debugging
     # Change column names and align pollutant names with standard names
     df = df.rename(columns={df.columns[0]: 'No.', 'time': 'Date', 'id': 'ID', 'MP10': 'PM10', 'MP2.5': 'PM2.5', 'BENZENO': 'Benzene', 'TOLUENO': 'Toluene'})
+    print("Columns after renaming:", df.columns)  # Debugging
     
     # Keep relevant columns only and standardize the time format
     df = df[['Date', 'PM10', 'TRS', 'O3', 'NO2', 'CO', 'PM2.5', 'SO2', 'Benzene', 'Toluene']]
