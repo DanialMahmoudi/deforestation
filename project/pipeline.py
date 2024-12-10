@@ -10,6 +10,8 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
+import random
 
 
 # To see whether CI works or not
@@ -52,6 +54,55 @@ def clear_existing_datasets():
     if os.path.exists(pollution_path):
         os.remove(pollution_path)
         print("Removed existing pollution dataset.")
+
+
+# Generate mock data
+def create_mock_data():
+    # Mock deforestation data
+    mock_deforestation = pd.DataFrame({
+        'objectid': np.arange(53716, 53716 + 3),  # 12 mock rows starting from the provided objectid
+        'date': pd.date_range(start='2013-07-31', periods=3, freq='M').strftime('%Y/%m/%d %H:%M:%S+00'),
+        'data_type': ['defor'] * 3,  # All rows are of type 'degrad'
+        'orig_oid': np.random.randint(0, 10, 3),
+        'orig_fname': ['imazon_sad_degradacao_2014-07_amazonia.shp'] * 3,
+        'gfwid': np.random.choice(['900D21D4-98A0-49CE-962F-8AAC8C6740FB', '541FAB70-B4B4-4A0C-8647-4231CA6D16FA', 
+                                   '2C57D170-C76F-4784-977A-0C470BEE4E82', '9C5CDF75-10E5-4B1E-B198-1822447FE0C6'], 3),
+        'globalid': np.random.choice(['{BBFDA6BE-3BAB-47C7-809F-1DDE5CE0FB91}', '{26DDC927-7941-41EC-BB6F-AB1E9A03A1FE}', 
+                                      '{501ACF77-105F-43E3-8513-F7CCEF9AE8D3}', '{15936FD5-1FBA-473D-9E8E-AB326D376E1B}'], 3),
+        'ha_eck_iv': np.random.uniform(5, 2000, 3),  # Random float values for hectares (within reasonable deforestation range)
+        'date_alias': pd.date_range(start='2013-07-31', periods=3, freq='M').strftime('%Y/%m/%d %H:%M:%S+00'),
+        'shape_Length': np.random.uniform(1000, 10000, 3),  # Mock shape length values
+        'shape_Area': np.random.uniform(100000, 5000000, 3)  # Mock shape area values
+    })
+    mock_deforestation.to_csv(os.path.join(data_dir, 'deforestation.csv'), index=False)
+
+    # Generate hourly time data for a full year (365 days)
+    time_range = pd.date_range(start='2013-07-31 00:00:00', end='2013-08-31 00:00:00', freq='H')
+    
+    # Mock pollution data
+    mock_pollution = pd.DataFrame({
+        '': np.arange(0, len(time_range)),
+        'time': time_range,
+        'id': [65] * len(time_range),
+        'MP10': np.nan,
+        'TRS': np.nan,
+        'O3': np.nan,
+        'NO2': np.nan,
+        'CO': np.nan,
+        'MP2.5': np.nan,
+        'SO2': np.nan,
+        'BENZENO': np.nan,
+        'TOLUENO': np.nan
+    })
+    # Randomly fill in missing values for pollutants (for demonstration purposes)
+    for column in ['MP10', 'TRS', 'O3', 'NO2', 'CO', 'MP2.5', 'SO2', 'BENZENO', 'TOLUENO']:
+        mock_pollution[column] = mock_pollution[column].apply(lambda x: random.uniform(5, 30) if random.random() > 0.2 else np.nan)
+        
+    # Save mock pollution data in the "cetesb.csv" folder
+    cetesb_dir = os.path.join(data_dir, 'cetesb.csv')
+    os.makedirs(cetesb_dir, exist_ok=True)  # Ensure the folder exists
+    mock_pollution.to_csv(os.path.join(cetesb_dir, 'cetesb.csv'), index=False)
+    print("Mock data created.")
 
 
 # Download function for deforestation data
@@ -237,20 +288,33 @@ def plot_deforestation_vs_pollutant(deforestation_df, pollution_df, pollutants):
 # Clear existing datasets, then download fresh ones
 clear_existing_datasets()
 deforestation_path = os.path.join(data_dir, "deforestation.csv")
-pollution_data_path = download_pollution_data()
+pollution_data_path = os.path.join(data_dir, "cetesb.csv", "cetesb.csv")
 
-# Download deforestation data
-download_data(deforestation_url, deforestation_path)
+# Check if mock data should be used
+if os.getenv('USE_MOCK_DATA') == 'true':
+    create_mock_data()
+else:
+    # Download datasets
+    download_data(deforestation_url, deforestation_path)
+    pollution_data_path = download_pollution_data()
 
 # Run data loading and save to SQLite if downloads succeed
 if os.path.exists(deforestation_path) and pollution_data_path:
     # Load datasets
     deforestation_df = pd.read_csv(deforestation_path)
+    print("Deforestation_raw")
+    print(deforestation_df)
     pollution_df = pd.read_csv(pollution_data_path)
+    print("Pollution_raw")
+    print(pollution_df)
     
     # Apply transformations
     deforestation_df = clean_deforestation_data(deforestation_df)
+    print("Deforestation_transformed")
+    print(deforestation_df)
     pollution_df = clean_pollution_data(pollution_df)
+    print("Pollution_transformed")
+    print(pollution_df)
     
     # Calling visualization functions
     #plot_deforestation_trend(deforestation_df)
