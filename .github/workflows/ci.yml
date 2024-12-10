@@ -25,6 +25,11 @@ jobs:
       with:
         python-version: 3.13
 
+    # Debug secrets
+    - name: Debug Kaggle Secret
+      run: echo "${{ secrets.KAGGLE_CONFIG_DIR }}" | head -n 1
+
+
     # Install Kaggle CLI and Dependencies
     - name: Install Kaggle CLI and Dependencies
       run: |
