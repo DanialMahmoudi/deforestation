@@ -34,7 +34,7 @@ jobs:
     - name: Install Kaggle CLI and Dependencies
       run: |
         mkdir -p ~/.kaggle
-        echo "${{ secrets.KAGGLE_CONFIG_DIR }}" > ~/.kaggle/kaggle.json
+        echo "{\"username\":\"${{ secrets.KAGGLE_USERNAME }}\",\"key\":\"${{ secrets.KAGGLE_KEY }}\"}" > ~/.kaggle/kaggle.json
         chmod 600 ~/.kaggle/kaggle.json
         pip install -r requirements.txt
 
