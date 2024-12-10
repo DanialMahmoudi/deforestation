@@ -1,0 +1,55 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - project/**
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    # Install Kaggle CLI and Dependencies
+    - name: Install Kaggle CLI and Dependencies
+      run: |
+        mkdir -p ~/.kaggle
+        echo "${{ secrets.KAGGLE_JSON }}" > ~/.kaggle/kaggle.json
+        chmod 600 ~/.kaggle/kaggle.json
+        pip install -r requirements.txt
+
+    # Make pipeline.sh and tests.sh executable
+    - name: Make Scripts Executable
+      run: |
+        chmod +x project/pipeline.sh
+        chmod +x project/tests.sh
+
+    # Run pipeline.sh
+    - name: Run Pipeline Script
+      run: bash project/pipeline.sh
+
+    # Run tests.sh
+    - name: Run Tests
+      run: bash project/tests.sh
+
+    # Save logs for debugging
+    - name: Save Logs for Debugging
+      if: failure()
+      run: |
+        cat project/pipeline.sh
+        cat project/tests.sh
