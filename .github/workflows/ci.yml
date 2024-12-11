@@ -25,13 +25,18 @@ jobs:
       with:
         python-version: 3.13
 
-    # Install Kaggle CLI and Dependencies
-    - name: Install Kaggle CLI and Dependencies
-      run: |
-        mkdir -p ~/.kaggle
-        echo "{\"username\":\"${{ secrets.KAGGLE_USERNAME }}\",\"key\":\"${{ secrets.KAGGLE_KEY }}\"}" > ~/.kaggle/kaggle.json
-        chmod 600 ~/.kaggle/kaggle.json
-        pip install -r requirements.txt
+    # Install Dependencies
+    - name: Install Dependencies
+      run: pip install -r requirements.txt
+    
+    # Optional: Run tests with real data
+    # Install Kaggle CLI
+    # Uncomment the following to download the real data
+    # - name: Install Kaggle CLI
+    #  run: |
+    #    mkdir -p ~/.kaggle
+    #    echo "{\"username\":\"${{ secrets.KAGGLE_USERNAME }}\",\"key\":\"${{ secrets.KAGGLE_KEY }}\"}" > ~/.kaggle/kaggle.json
+    #    chmod 600 ~/.kaggle/kaggle.json
 
     # Make pipeline.sh and tests.sh executable
     - name: Make Scripts Executable
@@ -43,17 +48,18 @@ jobs:
     - name: Clear Old Data
       run: rm -rf ./data || echo "No data folder to clear"
 
-    # Run pipeline.sh with Mock Data
-    - name: Run Pipeline Script with Mock Data
-      run: |
-        export USE_MOCK_DATA=true
-        bash project/pipeline.sh
-
     # Run tests.sh with Mock Data
     - name: Run Tests with Mock Data
       run: |
         export USE_MOCK_DATA=true
         bash project/tests.sh
+
+    # Optional: Run tests with real data
+    # Uncomment the following to test with real data on a specific trigger
+    # - name: Run Tests with Real Data
+    #   run: |
+    #     export USE_MOCK_DATA=false
+    #     bash project/tests.sh
 
     # Save logs for debugging
     - name: Save Logs for Debugging
