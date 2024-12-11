@@ -9,6 +9,12 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      use_mock_data:
+        description: "Use mock data (true/false)"
+        required: true
+        default: "true"
 
 jobs:
   test:
@@ -28,15 +34,14 @@ jobs:
     # Install Dependencies
     - name: Install Dependencies
       run: pip install -r requirements.txt
-    
-    # Optional: Run tests with real data
-    # Install Kaggle CLI
-    # Uncomment the following to download the real data
-    # - name: Install Kaggle CLI
-    #  run: |
-    #    mkdir -p ~/.kaggle
-    #    echo "{\"username\":\"${{ secrets.KAGGLE_USERNAME }}\",\"key\":\"${{ secrets.KAGGLE_KEY }}\"}" > ~/.kaggle/kaggle.json
-    #    chmod 600 ~/.kaggle/kaggle.json
+
+    # Install Kaggle CLI and Configure Credentials (for real data)
+    - name: Configure Kaggle CLI
+      if: ${{ inputs.use_mock_data == 'false' }}
+      run: |
+        mkdir -p ~/.kaggle
+        echo "{\"username\":\"${{ secrets.KAGGLE_USERNAME }}\",\"key\":\"${{ secrets.KAGGLE_KEY }}\"}" > ~/.kaggle/kaggle.json
+        chmod 600 ~/.kaggle/kaggle.json
 
     # Make pipeline.sh and tests.sh executable
     - name: Make Scripts Executable
@@ -48,18 +53,11 @@ jobs:
     - name: Clear Old Data
       run: rm -rf ./data || echo "No data folder to clear"
 
-    # Run tests.sh with Mock Data
-    - name: Run Tests with Mock Data
-      run: |
-        export USE_MOCK_DATA=true
-        bash project/tests.sh
-
-    # Optional: Run tests with real data
-    # Uncomment the following to test with real data on a specific trigger
-    # - name: Run Tests with Real Data
-    #   run: |
-    #     export USE_MOCK_DATA=false
-    #     bash project/tests.sh
+    # Run tests based on input
+    - name: Run Tests
+      env:
+        USE_MOCK_DATA: ${{ inputs.use_mock_data }}
+      run: bash project/tests.sh
 
     # Save logs for debugging
     - name: Save Logs for Debugging
