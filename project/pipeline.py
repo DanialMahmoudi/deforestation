@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import random
+import math
 
 
 # To see whether CI works or not
@@ -248,21 +249,18 @@ def plot_deforestation_with_pollutants(deforestation_df, pollution_df):
     # Create the directory if it doesn't exist
     os.makedirs(save_dir, exist_ok=True)
     
-    # Ensure common dates between deforestation and pollution data
-    common_dates = deforestation_df['Date'].isin(pollution_df['Date'])
-    deforestation_df = deforestation_df[common_dates]
-    pollution_df = pollution_df[common_dates]
-    
     # Plot deforestation trend with each pollutant one at a time
     for pollutant in pollution_df.columns.difference(['Date']):
         # Create a new figure for each pollutant
         plt.figure(figsize=(12, 6))
         
-        # Plot deforestation trend
-        sns.lineplot(data=deforestation_df, x="Date", y="AffectedArea", label="Deforestation Area", color="green")
+        # Plot deforestation trend with log transformation for showing purposes
+        sns.lineplot(data=deforestation_df, x="Date", y=deforestation_df['AffectedArea'].apply(lambda x: 10 * math.log10(x + 1)), 
+                     label="Log Deforestation Area", color="green")
         
-        # Plot the pollutant trend
-        sns.lineplot(data=pollution_df, x="Date", y=pollutant, label=pollutant, color="red")
+        # Plot the pollutant trend with log transformation
+        sns.lineplot(data=pollution_df, x="Date", y=pollution_df[pollutant].apply(lambda x: 10 * math.log10(x + 1)),
+                     label=f"Log {pollutant}", color="red")
         
         # Set title and labels
         plt.title(f"Deforestation vs {pollutant} Trend Over Time")
@@ -346,7 +344,7 @@ if os.path.exists(deforestation_path) and pollution_data_path:
     pollution_df = clean_pollution_data(pollution_df)
     
     # Calling visualization functions
-    plot_deforestation_with_pollutants(deforestation_df, pollution_df)
+    #plot_deforestation_with_pollutants(deforestation_df, pollution_df) ///////// Uncomment
     
     #plot_deforestation_trend(deforestation_df)
     #plot_pollutant_trends(pollution_df)
