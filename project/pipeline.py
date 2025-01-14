@@ -13,6 +13,9 @@ import seaborn as sns
 import numpy as np
 import random
 import math
+from scipy.stats import shapiro, probplot
+from scipy.stats import shapiro, probplot, spearmanr, kendalltau
+import statsmodels.api as sm
 
 
 # To see whether CI works or not
@@ -233,18 +236,32 @@ def clean_pollution_data(df):
 # Deforestation Trend Plot
 def plot_deforestation_trend(deforestation_df):
     
+    # Get data directory dynamically
+    save_dir = os.path.abspath(os.path.join(script_dir, '..', 'data'))
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(save_dir, exist_ok=True)
+    
     # Plot deforestation over time
     plt.figure(figsize=(12, 6))
     sns.lineplot(data=deforestation_df, x="Date", y="AffectedArea", label="Deforestation Area")
-    plt.title("Deforestation Trend Over Time")
-    plt.xlabel("Date")
+    plt.title("Deforestation Trend Over a Monthly Manner")
+    plt.xlabel("Date (Monthly)")
     plt.ylabel("Affected Area (ha)")
     plt.tight_layout()
+    
+    # Save the plot as a PNG file
+    plot_filename = os.path.join(save_dir, "deforestation_trend.png")
+    plt.tight_layout()
+    plt.savefig(plot_filename)
+    
     plt.show()
     
 # Function to plot deforestation trend with each pollutant
 def plot_deforestation_with_pollutants(deforestation_df, pollution_df):
-    save_dir = "data"
+    
+    # Get data directory dynamically
+    save_dir = os.path.abspath(os.path.join(script_dir, '..', 'data'))
     
     # Create the directory if it doesn't exist
     os.makedirs(save_dir, exist_ok=True)
@@ -256,15 +273,15 @@ def plot_deforestation_with_pollutants(deforestation_df, pollution_df):
         
         # Plot deforestation trend with log transformation for showing purposes
         sns.lineplot(data=deforestation_df, x="Date", y=deforestation_df['AffectedArea'].apply(lambda x: 10 * math.log10(x + 1)), 
-                     label="Log Deforestation Area", color="green")
+                     label="10*Log Deforestation Area", color="green")
         
         # Plot the pollutant trend with log transformation
         sns.lineplot(data=pollution_df, x="Date", y=pollution_df[pollutant].apply(lambda x: 10 * math.log10(x + 1)),
-                     label=f"Log {pollutant}", color="red")
+                     label=f"10*Log {pollutant}", color="red")
         
         # Set title and labels
-        plt.title(f"Deforestation vs {pollutant} Trend Over Time")
-        plt.xlabel("Date")
+        plt.title(f"Deforestation vs {pollutant} Trend Over a Monthly Manner")
+        plt.xlabel("Date (Monthly)")
         plt.ylabel("Values")
         plt.legend()
         
@@ -279,30 +296,116 @@ def plot_deforestation_with_pollutants(deforestation_df, pollution_df):
 # Trend Plot for all pollutants
 def plot_pollutant_trends(pollution_df):
     
+    # Get data directory dynamically
+    save_dir = os.path.abspath(os.path.join(script_dir, '..', 'data'))
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(save_dir, exist_ok=True)
+    
     # Plot each pollutant average based on time
-    plt.figure(figsize=(15, 10))
-    for col in pollution_df.columns.difference(['Date']):
-        sns.lineplot(data=pollution_df, x="Date", y=col, label=col)
+    for pollutant in pollution_df.columns.difference(['Date']):
         
-    plt.title("Trends of All Pollutants Over Time")
-    plt.xlabel("Date")
-    plt.ylabel("Pollutant Levels")
-    plt.legend(title="Pollutants", bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
-    plt.show()
+        # Create a new figure for each pollutant
+        plt.figure(figsize=(12, 6))
+        sns.lineplot(data=pollution_df, x="Date", y=pollution_df[pollutant], label=pollutant)
+        
+        # Set title and labels
+        plt.title(f"{pollutant} Trend Over a Monthly Manner")
+        plt.xlabel("Date (Monthly)")
+        plt.ylabel(f"{pollutant}")
+        plt.legend()
+        
+        # Save the plot as a PNG file
+        plot_filename = os.path.join(save_dir, f"{pollutant}.png")
+        plt.tight_layout()
+        plt.savefig(plot_filename)
+        
+        # Show the plot
+        plt.show()
     
 # Correlation Heatmap
 def plot_correlation_heatmap(deforestation_df, pollution_df):
+    # Get data directory dynamically
+    save_dir = os.path.abspath(os.path.join(script_dir, '..', 'data'))
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(save_dir, exist_ok=True)
     
     # Merge datasets
     merged_df = pd.merge(deforestation_df, pollution_df, on="Date", how="inner")
     
-    #Plot correlation
-    correlation_matrix = merged_df.drop(columns=['Date']).corr()
-    plt.figure(figsize=(12, 10))
-    sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap="coolwarm", cbar=True)
-    plt.title("Correlation Between Deforestation and All Pollutants")
+    # Select relevant columns
+    correlation_columns = ["AffectedArea"] + [col for col in merged_df.columns if col != "Date" and col != "AffectedArea"]
+    merged_df = merged_df[correlation_columns]
+
+    # Check normality for "Affected Area"
+    stat, p_value = shapiro(merged_df['AffectedArea'])
+    print(f'Shapiro-Wilk Test for Affected Area: Statistics={stat:.3f}, p={p_value:.3f}')
+    if p_value > 0.05:
+        print("Affected Area is normally distributed.")
+    else:
+        print("Affected Area is NOT normally distributed.")
+        # Q-Q Plot
+        probplot(merged_df['AffectedArea'], dist="norm", plot=plt)
+        plt.title("Q-Q Plot for Affected Area")
+        # Save the plot as a PNG file
+        plot_filename = os.path.join(save_dir, "Q-Q Plot for Affected Area.png")
+        plt.tight_layout()
+        plt.savefig(plot_filename)
+        plt.show()
+
+    # Check linearity with a scatter plot and linear regression for each pollutant
+    for pollutant in correlation_columns[1:]:
+        # Scatter Plot
+        plt.figure(figsize=(8, 6))
+        sns.scatterplot(x=merged_df['AffectedArea'], y=merged_df[pollutant])
+        plt.title(f'Scatter Plot: Affected Area vs {pollutant}')
+        # Save the plot as a PNG file
+        plot_filename = os.path.join(save_dir, f'Scatter Plot Affected Area vs {pollutant}.png')
+        plt.tight_layout()
+        plt.savefig(plot_filename)
+        plt.show()
+
+        # Linear regression analysis
+        X = merged_df['AffectedArea']
+        y = merged_df[pollutant]
+        X = sm.add_constant(X)  # Add constant to model for intercept
+        model = sm.OLS(y, X).fit()
+        print(f"Linear regression summary for {pollutant}:")
+        print(model.summary())
+
+        # Residual Plot
+        plt.figure(figsize=(8, 6))
+        sns.residplot(x=merged_df['AffectedArea'], y=merged_df[pollutant], lowess=True, color='blue')
+        plt.title(f"Residual Plot: Affected Area vs {pollutant}")
+        plt.tight_layout()
+        plot_filename = os.path.join(save_dir, f'Residual Plot Affected Area vs {pollutant}.png')
+        plt.savefig(plot_filename)
+        plt.show()
+
+        # Spearman's Rank Correlation (for non-normal or non-linear relationships)
+        spearman_stat, spearman_p = spearmanr(merged_df['AffectedArea'], merged_df[pollutant])
+        print(f"Spearman's Rank Correlation for {pollutant}: Statistics={spearman_stat:.3f}, p={spearman_p:.3f}")
+        
+        # Kendall's Tau (alternative non-parametric correlation)
+        kendall_stat, kendall_p = kendalltau(merged_df['AffectedArea'], merged_df[pollutant])
+        print(f"Kendall's Tau for {pollutant}: Statistics={kendall_stat:.3f}, p={kendall_p:.3f}")
+
+    # Calculate and plot correlation matrix (only Spearman between AffectedArea and pollutants)
+    spearman_corr = merged_df.corr(method="spearman")  # Calculate Spearman correlation
+
+    # Create a heatmap to visualize the correlation between AffectedArea and each pollutant
+    spearman_corr = spearman_corr.loc[["AffectedArea"], :]  # Only keep the row for AffectedArea
+    spearman_corr = spearman_corr.T # Transpose to show correlations as a column
+
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(spearman_corr, annot=True, fmt=".2f", cmap="coolwarm", cbar=True, vmin=-1, vmax=1)
+    plt.title("Spearman Correlation: Affected Area vs Pollutants")
+    
+    # Save the heatmap as a PNG file
+    plot_filename = os.path.join(save_dir, "Spearman Correlation Affected Area vs Pollutants.png")
     plt.tight_layout()
+    plt.savefig(plot_filename)
     plt.show()
     
 # Scatter plot for deforestation vs each pollutant
@@ -343,12 +446,18 @@ if os.path.exists(deforestation_path) and pollution_data_path:
     deforestation_df = clean_deforestation_data(deforestation_df)
     pollution_df = clean_pollution_data(pollution_df)
     
-    # Calling visualization functions
-    #plot_deforestation_with_pollutants(deforestation_df, pollution_df) ///////// Uncomment
+    # Plot Deforestation trend based on each pollutant
+    #plot_deforestation_with_pollutants(deforestation_df, pollution_df)   //// Uncomment
     
-    #plot_deforestation_trend(deforestation_df)
-    #plot_pollutant_trends(pollution_df)
-    #plot_correlation_heatmap(deforestation_df, pollution_df)
+    # Plot Deforestation trend solely
+    #plot_deforestation_trend(deforestation_df) /// Uncomment
+    
+    # Plot Pollutants Over Time
+    #plot_pollutant_trends(pollution_df)   /// Uncomment
+    
+    # Plot Correlation Heatmap
+    #plot_correlation_heatmap(deforestation_df, pollution_df) /// Uncomment
+    
     #pollutants = pollution_df.columns.difference(['Date'])
     #plot_deforestation_vs_pollutant(deforestation_df, pollution_df, pollutants)
     
