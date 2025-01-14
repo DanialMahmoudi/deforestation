@@ -241,6 +241,43 @@ def plot_deforestation_trend(deforestation_df):
     plt.tight_layout()
     plt.show()
     
+# Function to plot deforestation trend with each pollutant
+def plot_deforestation_with_pollutants(deforestation_df, pollution_df):
+    save_dir = "data"
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(save_dir, exist_ok=True)
+    
+    # Ensure common dates between deforestation and pollution data
+    common_dates = deforestation_df['Date'].isin(pollution_df['Date'])
+    deforestation_df = deforestation_df[common_dates]
+    pollution_df = pollution_df[common_dates]
+    
+    # Plot deforestation trend with each pollutant one at a time
+    for pollutant in pollution_df.columns.difference(['Date']):
+        # Create a new figure for each pollutant
+        plt.figure(figsize=(12, 6))
+        
+        # Plot deforestation trend
+        sns.lineplot(data=deforestation_df, x="Date", y="AffectedArea", label="Deforestation Area", color="green")
+        
+        # Plot the pollutant trend
+        sns.lineplot(data=pollution_df, x="Date", y=pollutant, label=pollutant, color="red")
+        
+        # Set title and labels
+        plt.title(f"Deforestation vs {pollutant} Trend Over Time")
+        plt.xlabel("Date")
+        plt.ylabel("Values")
+        plt.legend()
+        
+        # Save the plot as a PNG file
+        plot_filename = os.path.join(save_dir, f"deforestation_vs_{pollutant}.png")
+        plt.tight_layout()
+        plt.savefig(plot_filename)
+        
+        # Show the plot
+        plt.show()
+    
 # Trend Plot for all pollutants
 def plot_pollutant_trends(pollution_df):
     
@@ -309,6 +346,8 @@ if os.path.exists(deforestation_path) and pollution_data_path:
     pollution_df = clean_pollution_data(pollution_df)
     
     # Calling visualization functions
+    plot_deforestation_with_pollutants(deforestation_df, pollution_df)
+    
     #plot_deforestation_trend(deforestation_df)
     #plot_pollutant_trends(pollution_df)
     #plot_correlation_heatmap(deforestation_df, pollution_df)
