@@ -447,7 +447,7 @@ if os.path.exists(deforestation_path) and pollution_data_path:
     pollution_df = clean_pollution_data(pollution_df)
     
     # Plot Deforestation trend based on each pollutant
-    #plot_deforestation_with_pollutants(deforestation_df, pollution_df) ///Uncomment
+    #plot_deforestation_with_pollutants(deforestation_df, pollution_df) /// Uncomment
     
     # Plot Deforestation trend solely
     #plot_deforestation_trend(deforestation_df) /// Uncomment
