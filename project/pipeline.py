@@ -451,7 +451,7 @@ if os.path.exists(deforestation_path) and pollution_data_path:
     
     # Plot Deforestation trend solely
     #plot_deforestation_trend(deforestation_df) /// Uncomment
-    #
+    
     # Plot Pollutants Over Time
     #plot_pollutant_trends(pollution_df) /// Uncomment
     
