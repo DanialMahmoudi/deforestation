@@ -257,37 +257,37 @@ def plot_deforestation_trend(deforestation_df):
     
     plt.show()
     
-# Function to plot deforestation trend with each pollutant
+# Function to plot deforestation trend with each pollutant using a secondary y-axis
 def plot_deforestation_with_pollutants(deforestation_df, pollution_df):
+    # Get the directory to save plots dynamically
+    save_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data'))
     
-    # Get data directory dynamically
-    save_dir = os.path.abspath(os.path.join(script_dir, '..', 'data'))
-    
-    # Create the directory if it doesn't exist
+    # Ensure the directory exists
     os.makedirs(save_dir, exist_ok=True)
     
-    # Plot deforestation trend with each pollutant one at a time
+    # Iterate over each pollutant (excluding 'Date')
     for pollutant in pollution_df.columns.difference(['Date']):
-        # Create a new figure for each pollutant
-        plt.figure(figsize=(12, 6))
+        # Create figure and primary axis
+        fig, ax1 = plt.subplots(figsize=(12, 6))
         
-        # Plot deforestation trend with log transformation for showing purposes
-        sns.lineplot(data=deforestation_df, x="Date", y=deforestation_df['AffectedArea'].apply(lambda x: 10 * math.log10(x + 1)), 
-                     label="10*Log Deforestation Area", color="green")
+        # Plot deforestation trend on primary y-axis
+        ax1.plot(deforestation_df['Date'], deforestation_df['AffectedArea'], color='green', label='Deforestation Area')
+        ax1.set_xlabel("Date (Monthly)")
+        ax1.set_ylabel("Deforestation Area", color='green')
+        ax1.tick_params(axis='y', labelcolor='green')
         
-        # Plot the pollutant trend with log transformation
-        sns.lineplot(data=pollution_df, x="Date", y=pollution_df[pollutant].apply(lambda x: 10 * math.log10(x + 1)),
-                     label=f"10*Log {pollutant}", color="red")
+        # Create secondary y-axis for pollutant trend
+        ax2 = ax1.twinx()
+        ax2.plot(pollution_df['Date'], pollution_df[pollutant], color='red', label=f'{pollutant} Levels')
+        ax2.set_ylabel(f'{pollutant} Levels', color='red')
+        ax2.tick_params(axis='y', labelcolor='red')
         
-        # Set title and labels
-        plt.title(f"Deforestation vs {pollutant} Trend Over a Monthly Manner")
-        plt.xlabel("Date (Monthly)")
-        plt.ylabel("Values")
-        plt.legend()
+        # Title and layout
+        plt.title(f"Deforestation vs. {pollutant} Trend (Monthly)")
+        fig.tight_layout()
         
-        # Save the plot as a PNG file
+        # Save the plot
         plot_filename = os.path.join(save_dir, f"deforestation_vs_{pollutant}.png")
-        plt.tight_layout()
         plt.savefig(plot_filename)
         
         # Show the plot
@@ -447,13 +447,13 @@ if os.path.exists(deforestation_path) and pollution_data_path:
     pollution_df = clean_pollution_data(pollution_df)
     
     # Plot Deforestation trend based on each pollutant
-    #plot_deforestation_with_pollutants(deforestation_df, pollution_df)   //// Uncomment
+    #plot_deforestation_with_pollutants(deforestation_df, pollution_df) ///Uncomment
     
     # Plot Deforestation trend solely
     #plot_deforestation_trend(deforestation_df) /// Uncomment
     
     # Plot Pollutants Over Time
-    #plot_pollutant_trends(pollution_df)   /// Uncomment
+    #plot_pollutant_trends(pollution_df) /// Uncomment
     
     # Plot Correlation Heatmap
     #plot_correlation_heatmap(deforestation_df, pollution_df) /// Uncomment
