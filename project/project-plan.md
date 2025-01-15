@@ -27,17 +27,52 @@ This dataset contains historical air quality data from CETESB monitoring station
 
 ## Work Packages
 
-### 1. Data Acquisition and Exploration
-   - Download the deforestation dataset from the SAD Alerts and the pollution dataset from Kaggle.
-   - Inspect the datasets to verify formats, timestamps, and key attributes like pollutant concentrations and deforestation dates.
+### **1️. Data Acquisition and Exploration**
+- Downloaded the deforestation dataset from the SAD Alerts and the pollution dataset from Kaggle.  
+- Generated **mock data** for testing purposes to streamline CI workflows.  
+- Inspected the datasets to verify formats, timestamps, and key attributes like pollutant concentrations and deforestation dates.
 
-### 2. Data Cleaning and Preprocessing
-   - Standardize the time format and synchronize deforestation data with pollution data based on timestamps and locations.
-   - Rename columns to make them more intuitive, e.g., 'Date' for deforestation timestamps and 'Time' for pollution timestamps.
-   - Convert relevant columns to appropriate data types (e.g., datetime, float).
-   - Handle missing or invalid values (e.g., dropping rows with missing critical data).
+### **2️. Data Cleaning and Preprocessing**
+- Standardized the time format and synchronized deforestation data with pollution data based on **monthly timestamps**.  
+- Renamed columns to make them more intuitive (e.g., 'Date' for deforestation timestamps and pollutant columns like 'PM10', 'NO2').  
+- Converted relevant columns to appropriate data types (e.g., datetime, float).  
+- Handled missing values through interpolation for deforestation data. For pollutants, missing values were filled with **0**, as there were no data recording for certain pollutants.
 
-### 3. Data Integration and Pipeline Setup
-   - Create an ETL pipeline to download, clean, and transform the data.
-   - Integrate both deforestation and pollution data into SQLite databases, making them ready for analysis.
-   - Ensure the pipeline works on both local and supervisor environments by testing with `pipeline.sh`.
+### **3. Data Integration and Pipeline Setup** 
+- Created a fully automated **ETL pipeline** (`pipeline.py`) to download, clean, and transform both datasets.  
+- Integrated both deforestation and pollution data into **SQLite databases**:  
+  - `deforestation.db` for deforestation alerts.  
+  - `air_pollution.db` for pollution data.  
+- Ensured the pipeline runs smoothly in both **local** and **GitHub Actions** environments using **mock data** for CI workflows.  
+- Developed a flexible `pipeline.sh` script to control the data flow, including toggling between real and mock data.
+
+### **4. Automated Testing (tests.sh)**
+- Created a `tests.sh` script to validate the pipeline.  
+- The script runs the pipeline using both **mock** and **real data** modes.  
+- Checks if the `deforestation.db` and `air_pollution.db` files are generated correctly and ensures they are not empty.  
+- The script automatically switches between mock and real data using an environment variable (`USE_MOCK_DATA`).
+
+### **5. CI/CD Workflow Setup**
+- Set up **GitHub Actions** for continuous integration and testing.  
+- Implemented a **CI workflow** (`ci.yml`) that automatically runs the pipeline and tests on every **push to the main branch** and **pull request**.  
+- The workflow uses **GitHub Secrets** to securely handle Kaggle API credentials.  
+- Introduced a **workflow_dispatch** event to manually trigger the workflow and choose between **mock** and **real data** runs.  
+
+### **6. Exploratory Data Analysis (EDA)**
+- Analyzed trends for **deforestation** and each **pollutant** on a **monthly basis**.  
+- Generated **line plots** to visualize the trends for deforestation and air pollutants over time.  
+- Created **correlation heatmaps** to identify relationships between deforestation and various pollutants.  
+- Performed **scatter plots** and **regression analyses** to check linearity and strength of correlations.
+
+### **7. Correlation and Statistical Analysis**
+- Checked for **normality** using the **Shapiro-Wilk test** and generated **Q-Q plots** for distribution analysis.  
+- Calculated **Spearman's Rank Correlation** for each pollutant to measure monotonic relationships with deforestation.  
+- Calculated **Kendall’s Tau** as an alternative for non-linear relationships.  
+
+### **8. Final Report Generation**
+- **analysis-report.pdf** was finalized, summarizing the key findings from trend analysis, correlation results, and interpretation.  
+- **data-report.pdf** was finalized, documenting the structure, cleaning steps, and integration process for both datasets.  
+- The reports include:  
+  - Key insights from trend and correlation analyses.  
+  - Clear answers to the main research question.  
+  - Reflections on data limitations and areas for future improvement.
