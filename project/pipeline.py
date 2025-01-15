@@ -282,6 +282,9 @@ def plot_deforestation_with_pollutants(deforestation_df, pollution_df):
         ax2.set_ylabel(f'{pollutant} Levels', color='red')
         ax2.tick_params(axis='y', labelcolor='red')
         
+        # Add Legends
+        ax1.legend(loc='upper left')  # For deforestation area
+        ax2.legend(loc='upper right')  # For pollutant levels
         # Title and layout
         plt.title(f"Deforestation vs. {pollutant} Trend (Monthly)")
         fig.tight_layout()
@@ -351,6 +354,7 @@ def plot_correlation_heatmap(deforestation_df, pollution_df):
         # Save the plot as a PNG file
         plot_filename = os.path.join(save_dir, "Q-Q Plot for Affected Area.png")
         plt.tight_layout()
+        plt.legend()
         plt.savefig(plot_filename)
         plt.show()
 
@@ -447,16 +451,16 @@ if os.path.exists(deforestation_path) and pollution_data_path:
     pollution_df = clean_pollution_data(pollution_df)
     
     # Plot Deforestation trend based on each pollutant
-    #plot_deforestation_with_pollutants(deforestation_df, pollution_df) /// Uncomment
+    # plot_deforestation_with_pollutants(deforestation_df, pollution_df)
     
     # Plot Deforestation trend solely
-    #plot_deforestation_trend(deforestation_df) /// Uncomment
+    # plot_deforestation_trend(deforestation_df)
     
     # Plot Pollutants Over Time
-    #plot_pollutant_trends(pollution_df) /// Uncomment
+    # plot_pollutant_trends(pollution_df)
     
     # Plot Correlation Heatmap
-    #plot_correlation_heatmap(deforestation_df, pollution_df) /// Uncomment
+    # plot_correlation_heatmap(deforestation_df, pollution_df)
     
     #pollutants = pollution_df.columns.difference(['Date'])
     #plot_deforestation_vs_pollutant(deforestation_df, pollution_df, pollutants)
